@@ -46,34 +46,33 @@ export const asignarPerfil = async (req, res) => {
   const connection = await pool.getConnection();
 
   try {
-    await connection.beginTransaction();
+  await connection.beginTransaction();
 
+  // Se agrega IGNORE para evitar que colisione si ya existía el registro
+  await connection.query(
+    `INSERT IGNORE INTO usuarios_roles (cod_usuario, cod_rol) VALUES (?, ?)`,
+    [cod_usuario, cod_rol]
+  );
+
+  if (parseInt(cod_rol) === 1) {
     await connection.query(
-      `INSERT INTO usuario_roles (cod_usuario, cod_rol) VALUES (?, ?)`,
-      [cod_usuario, cod_rol],
+      `INSERT IGNORE INTO solicitantes (cod_usuario) VALUES (?)`,
+      [cod_usuario]
     );
-
-    if (parseInt(cod_rol) === 1) {
-      await connection.query(
-        `INSERT IGNORE INTO solicitantes (cod_usuario) VALUES (?)`,
-        [cod_usuario],
-      );
-    } else if (parseInt(cod_rol) === 2) {
-      await connection.query(
-        `INSERT IGNORE INTO prestadores (cod_usuario) VALUES (?)`,
-        [cod_usuario],
-      );
-    }
-
-    await connection.commit();
-    res.status(200).json({ message: "Perfil asignado exitosamente" });
-  } catch (error) {
-    await connection.rollback();
-    res
-      .status(500)
-      .json({ message: "Error al asignar perfil", error: error.message });
-  } finally {
-    connection.release();
+  } else if (parseInt(cod_rol) === 2) {
+    await connection.query(
+      `INSERT IGNORE INTO prestadores (cod_usuario) VALUES (?)`,
+      [cod_usuario]
+    );
   }
+
+  await connection.commit();
+  res.status(200).json({ message: "Perfil asignado exitosamente" });
+} catch (error) {
+  await connection.rollback();
+  res.status(500).json({ message: "Error al asignar perfil", error: error.message });
+} finally {
+  connection.release();
+}
 };
 

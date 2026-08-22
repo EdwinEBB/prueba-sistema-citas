@@ -1,32 +1,45 @@
 import pool from '../config/db.js';
 
 export const crearCita = async (req, res) => {
-
 const { descripcion, cupos_totales, fecha } = req.body;
-const cod_usuario_prestador = req.usuario.cod;
+  
+  const cod_usuario_prestador = req.user?.cod || req.user?.usuario?.cod || req.usuario?.cod;
 
-// Verificación de la fecha (ya que no puede ser el mismo día)
-const VerificarFechaCita = new Date(fecha);
-const hoy = new Date();
-hoy.setHours(0, 0, 0, 0); // esto equivale a la media noche del día de hoy
+  // Verificar que el usuario exista en la sesión
+  if (!cod_usuario_prestador) {
+    return res.status(400).json({ error: 'No se pudo obtener la identidad del usuario desde el token.' });
+  }
 
-if (VerificarFechaCita <= hoy) {
-  return res
-    .status(400)
-    .json({
-      message: "La fecha de la cita no puede del mismo día ni de antes",
+  // Verificación de la fecha (no puede ser el mismo día ni anterior)
+  const VerificarFechaCita = new Date(fecha);
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
+  if (VerificarFechaCita <= hoy) {
+    return res.status(400).json({
+      message: "La fecha de la cita no puede ser del mismo día ni anterior",
     });
-}
+  }
 
-try {
-    const [result] = await pool.query(`
-        INSERT INTO citas (descripcion, cupos_totales, cupos_disponibles, cod_usuario_prestador, fecha)
-        VALUES (?, ?, ?, ?, ?)`,
-        [descripcion, cupos_totales, cupos_totales, cod_usuario_prestador, fecha]);
-    res
-      .status(201)
-      .json({ message: "Cita creada exitosamente", id: result.insertId });
-} catch (error) {
-    res.status(500).json({message: "Error al asignar cita", error: error.message})
-}
+  try {
+    // Validar que el usuario tenga el rol de prestador en la BD antes de insertar
+    const [prestador] = await pool.query(
+      'SELECT cod_usuario FROM prestadores WHERE cod_usuario = ?',
+      [cod_usuario_prestador]
+    );
+
+    if (prestador.length === 0) {
+      return res.status(403).json({ error: 'El usuario no tiene asignado el perfil de Prestador de Servicios.' });
+    }
+
+    const [result] = await pool.query(
+      `INSERT INTO citas (descripcion, cupos_totales, cupos_disponibles, cod_usuario_prestador, fecha)
+       VALUES (?, ?, ?, ?, ?)`,
+      [descripcion, cupos_totales, cupos_totales, cod_usuario_prestador, fecha]
+    );
+
+    res.status(201).json({ message: "Cita creada exitosamente", id: result.insertId });
+  } catch (error) {
+    res.status(500).json({ message: "Error al asignar cita", error: error.message });
+  }
 }

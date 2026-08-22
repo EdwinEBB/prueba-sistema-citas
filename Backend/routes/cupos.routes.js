@@ -1,12 +1,18 @@
-import {Router} from 'express';
-import { asignarCupo, consultarCuposPrestador, consultarCuposSolicitante, suscribirPrestador } from '../controllers/cupos.controller.js';
-import { VerificarToken } from '../middlewares/auth.middleware.js';
+import { Router } from 'express';
+import { 
+  consultarCuposPrestador, 
+  consultarCuposSolicitante, 
+  obtenerMisReservas,
+  asignarCupo, suscribirPrestador
+} from '../controllers/cupos.controller.js';
+import { VerificarToken, esSolicitante, esPrestador } from '../middlewares/auth.middleware.js';
 
-const cuposRoutes = Router();
+const CuposRoutes = Router();
 
-cuposRoutes.post('/asignar', VerificarToken, asignarCupo);
-cuposRoutes.post('/suscribir', VerificarToken, suscribirPrestador);
-cuposRoutes.get('/prestador', VerificarToken, consultarCuposPrestador);
-cuposRoutes.get('/solicitante', VerificarToken, consultarCuposSolicitante);
+CuposRoutes.get('/prestador', VerificarToken, consultarCuposPrestador);
+CuposRoutes.get('/solicitante', VerificarToken, consultarCuposSolicitante);
+CuposRoutes.get('/mis-reservas', VerificarToken ,obtenerMisReservas); // <- Asegúrate de incluir esta ruta
+CuposRoutes.post('/asignar', VerificarToken, asignarCupo);
+CuposRoutes.post('/suscribir', VerificarToken,suscribirPrestador);
 
-export default cuposRoutes;
+export default CuposRoutes;

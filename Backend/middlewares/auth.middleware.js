@@ -16,3 +16,29 @@ export const VerificarToken = (req, res, next) => {
         res.status(403).json({ message: 'Token inválido' });
     }
 }
+
+
+
+//Verificar que es prestador
+export const esPrestador = (req, res, next) => {
+  const rol = String(req.user?.rol || req.user?.cod_rol || '').toLowerCase();
+
+  // Acepta "prestador", "2" o el valor numérico 2
+  if (rol !== 'Prestador' && rol !== '2') { 
+    return res.status(403).json({ error: 'Acceso denegado. Se requiere rol de Prestador.' });
+  }
+
+  next();
+};
+
+// Verificar que es solicitante
+export const esSolicitante = (req, res, next) => {
+  const rol = String(req.user?.rol || req.user?.cod_rol || '').toLowerCase();
+
+  // Acepta "solicitante", "1" o el valor numérico 1
+  if (rol !== 'Solicitante' && rol !== '1') { 
+    return res.status(403).json({ error: 'Acceso denegado. Se requiere rol de Solicitante.' });
+  }
+
+  next();
+};

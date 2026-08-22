@@ -7,7 +7,7 @@ export default function AsignarRol({ setNotificación, defaultUserId }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/auth/assign-role', form);
+      await api.post('/auth/asignar-perfil', form);
       setNotificación({ tipo: 'exito', texto: `Rol #${form.cod_rol} asignado al usuario #${form.cod_usuario}` });
     } catch (err) {
       setNotificación({ tipo: 'error', texto: err.response?.data?.error || 'Error al asignar rol' });

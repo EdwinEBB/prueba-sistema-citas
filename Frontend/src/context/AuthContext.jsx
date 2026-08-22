@@ -2,6 +2,18 @@ import React, { createContext, useState, useContext } from 'react';
 
 const AuthContext = createContext();
 
+
+
+export const getUserRole = () => {
+  const token = localStorage.getItem('token');
+  if (!token) return null;
+  
+  // Decodificar payload del JWT (o leer del usuario guardado en localStorage)
+  const payload = JSON.parse(atob(token.split('.')[1]));
+  return payload.rol; // O payload.rol_id / payload.tipo_usuario
+
+}
+
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
   const [usuario, setUsuario] = useState(
@@ -15,11 +27,14 @@ export const AuthProvider = ({ children }) => {
     setUsuario(dataUsuario);
   };
 
+  
+
   const logoutContext = () => {
     localStorage.clear();
     setToken('');
     setUsuario(null);
   };
+  
 
   return (
     <AuthContext.Provider value={{ token, usuario, loginContext, logoutContext }}>
