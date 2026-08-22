@@ -1,6 +1,6 @@
-import pool from '../config/db.config.js';
+import pool from '../config/db.js';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 
 export const registrarUsuario = async(req, res) => {
     const { usuario, clave, razon_social } = req.body;
@@ -26,9 +26,9 @@ export const login = async(req, res) => {
 
         if (!ClaveValida) return res.status(401).json({ message: 'Contraseña incorrecta' });
         const [roles] = await pool.query(`
-            SELECT r.nombre FROM roles r
-            JOIN usuario_roles ur ON r.cod = ur.cod_rol
-            WHERE ur.usuario_cod = ?`, [user.cod]);
+            SELECT r.descripcion FROM roles r
+            JOIN usuarios_roles ur ON r.cod = ur.cod_rol
+            WHERE ur.cod_usuario = ?`, [user.cod]);
 
         const token = jwt.sign(
             { cod: user.cod, usuario: user.usuario, roles: roles},
