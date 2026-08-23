@@ -167,3 +167,23 @@ export const obtenerMisReservas = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+export const obtenerCitasSolicitante = async (req, res) => {
+  const cod_usuario = req.usuario.cod; // Tomado del JWT decoded
+
+  try {
+    const [citas] = await pool.query(`
+      SELECT c.cod, c.num_cupos, u.usuario AS nom_prestador
+      FROM citas c
+      INNER JOIN prestadores p ON c.cod_prestador = p.cod
+      INNER JOIN usuarios u ON p.cod_usuario = u.cod
+      INNER JOIN suscripciones s ON p.cod = s.cod_prestador
+      INNER JOIN solicitantes sol ON s.cod_solicitante = sol.cod
+      WHERE sol.cod_usuario = ? AND c.num_cupos > 0
+    `, [cod_usuario]);
+
+    res.json(citas);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

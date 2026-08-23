@@ -1,14 +1,25 @@
 import React, { useState } from 'react';
 import api from '../api/axios';
 
-export default function AsignarRol({ setNotificación, defaultUserId }) {
+export default function AsignarRol({ setNotificación, defaultUserId, onRolCambiado }) {
   const [form, setForm] = useState({ cod_usuario: defaultUserId || '', cod_rol: '1' });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/auth/asignar-perfil', form);
-      setNotificación({ tipo: 'exito', texto: `Rol #${form.cod_rol} asignado al usuario #${form.cod_usuario}` });
+      const res = await api.post('/auth/asignar-perfil', form);
+      
+      // Sobrescribir en localStorage con la nueva sesión actualizada
+      if (res.data.token && res.data.usuario) {
+        localStorage.setItem('token', res.data.token);
+        localStorage.setItem('usuario', JSON.stringify(res.data.usuario));
+      }
+
+      setNotificación({ tipo: 'exito', texto: `Rol #${form.cod_rol} asignado correctamente` });
+
+      if (onRolCambiado) {
+        onRolCambiado(form.cod_rol);
+      }
     } catch (err) {
       setNotificación({ tipo: 'error', texto: err.response?.data?.error || 'Error al asignar rol' });
     }

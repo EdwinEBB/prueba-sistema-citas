@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import LoginForm from './components/LoginForm';
@@ -6,14 +6,30 @@ import RegisterForm from './components/RegisterForm';
 
 import AsignarRol from './modules/AsignarRol';
 import CrearCita from './modules/CrearCita';
-import Suscribir from './modules/Suscribir';
-import ReservarCupo from './modules/ReservarCupo';
 import Consultas from './modules/Consultas';
 
 export default function App() {
   const { token, usuario } = useAuth();
   const [tabAuth, setTabAuth] = useState('login');
   const [notificación, setNotificación] = useState(null);
+
+  const [rolActivo, setRolActivo] = useState(
+    usuario?.cod_rol || usuario?.rol || null
+  );
+
+  useEffect(() => {
+    if (usuario) {
+      setRolActivo(usuario.cod_rol || usuario.rol || null);
+    }
+  }, [usuario]);
+
+  const tieneRol = rolActivo !== null && rolActivo !== undefined && rolActivo !== '';
+  const esPrestador = String(rolActivo).toLowerCase() === '2' || String(rolActivo).toLowerCase() === 'prestador';
+
+  const handleRolAsignado = (nuevoRol) => {
+    setRolActivo(nuevoRol);
+    window.location.reload(); // Recarga para actualizar token/sesión con el nuevo rol
+  };
 
   const getEstiloAlerta = (tipo) => {
     switch (tipo) {
@@ -68,11 +84,23 @@ export default function App() {
         </div>
       ) : (
         <main style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <AsignarRol setNotificación={setNotificación} defaultUserId={usuario?.cod} />
-          <CrearCita setNotificación={setNotificación} />
-          <Suscribir setNotificación={setNotificación} />
-          <ReservarCupo setNotificación={setNotificación} />
-          <Consultas setNotificación={setNotificación} />
+          
+          {/* Si no tiene rol, le muestra el panel para asignar */}
+          {!tieneRol ? (
+            <AsignarRol 
+              setNotificación={setNotificación} 
+              defaultUserId={usuario?.cod} 
+              onRolCambiado={handleRolAsignado} 
+            />
+          ) : (
+            /* Si ya tiene rol, solo muestra 'CrearCita' si es prestador */
+            <>
+              {esPrestador && <CrearCita setNotificación={setNotificación} />}
+            </>
+          )}
+
+          {/* Renderizado único de Consultas */}
+          <Consultas setNotificación={setNotificación} key={rolActivo} />
         </main>
       )}
     </div>
