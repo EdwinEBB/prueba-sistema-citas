@@ -175,3 +175,17 @@ export const obtenerCitasSolicitante = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const listarPrestadoresDisponibles = async (req, res) => {
+  try {
+    const [prestadores] = await pool.query(
+      `SELECT u.cod, u.usuario, u.razon_social 
+       FROM usuarios u
+       JOIN usuarios_roles ur ON u.cod = ur.cod_usuario
+       WHERE ur.cod_rol = 2` // Asumiendo que 2 es el rol de Prestador
+    );
+    res.json(prestadores);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

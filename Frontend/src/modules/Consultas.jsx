@@ -9,6 +9,7 @@ const Consultas = () => {
   const [codPrestadorSuscribir, setCodPrestadorSuscribir] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [listaPrestadores, setListaPrestadores] = useState([]);
 
   const esUsuarioPrestador = esPrestador();
 
@@ -18,17 +19,17 @@ const Consultas = () => {
       setError(null);
 
       if (esUsuarioPrestador) {
-        
         const res = await api.get('/cupos/prestador');
         setSolicitudesRecibidas(Array.isArray(res.data) ? res.data : []);
       } else {
-       
-        const [resDisponibles, resMisReservas] = await Promise.all([
+        const [resDisponibles, resMisReservas, resPrestadores] = await Promise.all([
           api.get('/cupos/solicitante'),
-          api.get('/cupos/mis-reservas')
+          api.get('/cupos/mis-reservas'),
+          api.get('/cupos/prestadores-disponibles')
         ]);
         setCitasDisponibles(Array.isArray(resDisponibles.data) ? resDisponibles.data : []);
         setMisReservas(Array.isArray(resMisReservas.data) ? resMisReservas.data : []);
+        setListaPrestadores(Array.isArray(resPrestadores.data) ? resPrestadores.data : []);
       }
     } catch (err) {
       console.error('Error al cargar datos:', err);
@@ -42,7 +43,6 @@ const Consultas = () => {
     cargarDatos();
   }, [esUsuarioPrestador]);
 
-  
   const handleReservar = async (cod_cita) => {
     try {
       await api.post('/cupos/asignar', { cod_cita });
@@ -67,7 +67,6 @@ const Consultas = () => {
 
   if (loading) return <div className="p-4 text-gray-600">Cargando información...</div>;
   if (error) return <div className="p-4 text-red-500 font-semibold">{error}</div>;
-
 
   if (esUsuarioPrestador) {
     return (
@@ -105,6 +104,29 @@ const Consultas = () => {
   return (
     <div className="p-4 space-y-8">
       
+      {/* Sección de Prestadores Disponibles en el Sistema */}
+      <section className="p-4 border rounded-lg bg-white shadow-sm">
+        <h3 className="font-bold text-lg mb-3 text-gray-800">Prestadores Disponibles en el Sistema</h3>
+        {listaPrestadores.length === 0 ? (
+          <p className="text-gray-500">No hay prestadores registrados actualmente.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {listaPrestadores.map((p) => (
+              <div key={p.cod} className="p-3 border rounded bg-gray-50 flex justify-between items-center">
+                <div>
+                  <p className="font-semibold text-gray-800">{p.usuario}</p>
+                  {p.razon_social && <p className="text-xs text-gray-500">{p.razon_social}</p>}
+                </div>
+                <span className="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded font-mono font-bold">
+                  ID: {p.cod}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Suscribirse a un Prestador */}
       <section className="p-4 border rounded-lg bg-white shadow-sm">
         <h3 className="font-bold text-lg mb-2 text-gray-800">Suscribirse a un Prestador</h3>
         <form onSubmit={handleSuscribir} className="flex gap-2">
@@ -121,12 +143,12 @@ const Consultas = () => {
           </button>
         </form>
       </section>
-
       
+      {/* Citas Disponibles para Reservar */}
       <section>
         <h3 className="font-bold text-lg mb-3 text-gray-800">Citas Disponibles para Reservar</h3>
         {citasDisponibles.length === 0 ? (
-          <p className="text-gray-500">No hay citas disponibles de tus prestadores suscritos.</p>
+          <p className="text-gray-500">No hay citas disponibles en este momento.</p>
         ) : (
           <ul className="space-y-3">
             {citasDisponibles.map((cita) => (
@@ -148,7 +170,7 @@ const Consultas = () => {
         )}
       </section>
 
-      
+      {/* Mis Reservas Confirmadas */}
       <section>
         <h3 className="font-bold text-lg mb-3 text-gray-800">Mis Reservas Confirmadas</h3>
         {misReservas.length === 0 ? (
