@@ -1,11 +1,10 @@
 import pool from '../config/db.js';
 
 export const crearCita = async (req, res) => {
-const { descripcion, cupos_totales, fecha } = req.body;
+  const { descripcion, cupos_totales, fecha } = req.body;
   
   const cod_usuario_prestador = req.user?.cod || req.user?.usuario?.cod || req.usuario?.cod;
 
-  // Verificar que el usuario exista en la sesión
   if (!cod_usuario_prestador) {
     return res.status(400).json({ error: 'No se pudo obtener la identidad del usuario desde el token.' });
   }
@@ -22,16 +21,7 @@ const { descripcion, cupos_totales, fecha } = req.body;
   }
 
   try {
-    // Validar que el usuario tenga el rol de prestador en la BD antes de insertar
-    const [prestador] = await pool.query(
-      'SELECT cod_usuario FROM prestadores WHERE cod_usuario = ?',
-      [cod_usuario_prestador]
-    );
-
-    if (prestador.length === 0) {
-      return res.status(403).json({ error: 'El usuario no tiene asignado el perfil de Prestador de Servicios.' });
-    }
-
+    // Inserta directamente la cita sin buscar en la tabla 'prestadores' eliminada
     const [result] = await pool.query(
       `INSERT INTO citas (descripcion, cupos_totales, cupos_disponibles, cod_usuario_prestador, fecha)
        VALUES (?, ?, ?, ?, ?)`,
@@ -42,4 +32,4 @@ const { descripcion, cupos_totales, fecha } = req.body;
   } catch (error) {
     res.status(500).json({ message: "Error al asignar cita", error: error.message });
   }
-}
+};

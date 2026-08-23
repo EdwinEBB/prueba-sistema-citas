@@ -90,16 +90,11 @@ export const asignarPerfil = async (req, res) => {
         `INSERT IGNORE INTO solicitantes (cod_usuario) VALUES (?)`,
         [cod_usuario]
       );
-    } else if (parseInt(cod_rol) === 2) {
-      await connection.query(
-        `INSERT IGNORE INTO prestadores (cod_usuario) VALUES (?)`,
-        [cod_usuario]
-      );
     }
+    // NOTA: Se eliminó el "else if" que insertaba en la tabla 'prestadores'
 
     await connection.commit();
 
-    // Consultar datos del usuario para firmar un nuevo token actualizado
     const [userRows] = await pool.query('SELECT * FROM usuarios WHERE cod = ?', [cod_usuario]);
     const user = userRows[0];
 
