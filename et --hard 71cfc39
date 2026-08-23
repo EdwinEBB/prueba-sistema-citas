@@ -1,7 +1,0 @@
-[33m69d6867[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{0}: reset: moving to 69d6867
-[33m71cfc39[m[33m ([m[1;31morigin/main[m[33m)[m HEAD@{1}: commit: Proyecto listo para entrega
-[33m49b19cc[m HEAD@{2}: commit: Sistema en funcionamiento basico, con reservas y creación de citas
-[33m69d6867[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{3}: commit: Backend y Frontend listo para pruebas
-[33m09d3210[m HEAD@{4}: commit: añadido: controladores de autenticación, citas y cupos
-[33m8a5b54e[m HEAD@{5}: Branch: renamed refs/heads/master to refs/heads/main
-[33m8a5b54e[m HEAD@{7}: commit (initial): nuevo: iniciando el proyecto con estructura de carpetas en backend y conexión a la base de datos
