@@ -21,10 +21,9 @@ export const VerificarToken = (req, res, next) => {
 
 //Verificar que es prestador
 export const esPrestador = (req, res, next) => {
-  const rol = String(req.user?.rol || req.user?.cod_rol || '').toLowerCase();
+  const codRol = Number(req.user?.cod_rol);
 
-  // Acepta "prestador", "2" o el valor numérico 2
-  if (rol !== 'Prestador' && rol !== '2') { 
+  if (codRol !== 2) {
     return res.status(403).json({ error: 'Acceso denegado. Se requiere rol de Prestador.' });
   }
 
@@ -33,10 +32,9 @@ export const esPrestador = (req, res, next) => {
 
 // Verificar que es solicitante
 export const esSolicitante = (req, res, next) => {
-  const rol = String(req.user?.rol || req.user?.cod_rol || '').toLowerCase();
+  const codRol = Number(req.user?.cod_rol);
 
-  // Acepta "solicitante", "1" o el valor numérico 1
-  if (rol !== 'Solicitante' && rol !== '1') { 
+  if (codRol !== 1) {
     return res.status(403).json({ error: 'Acceso denegado. Se requiere rol de Solicitante.' });
   }
 

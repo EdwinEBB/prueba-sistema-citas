@@ -90,8 +90,12 @@ export const asignarPerfil = async (req, res) => {
         `INSERT IGNORE INTO solicitantes (cod_usuario) VALUES (?)`,
         [cod_usuario]
       );
+    } else if (parseInt(cod_rol) === 2) {
+      await connection.query(
+        `INSERT IGNORE INTO prestadores (cod_usuario) VALUES (?)`,
+        [cod_usuario]
+      );
     }
-    // NOTA: Se eliminó el "else if" que insertaba en la tabla 'prestadores'
 
     await connection.commit();
 

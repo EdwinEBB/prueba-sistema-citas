@@ -21,7 +21,6 @@ export const crearCita = async (req, res) => {
   }
 
   try {
-    // Inserta directamente la cita sin buscar en la tabla 'prestadores' eliminada
     const [result] = await pool.query(
       `INSERT INTO citas (descripcion, cupos_totales, cupos_disponibles, cod_usuario_prestador, fecha)
        VALUES (?, ?, ?, ?, ?)`,

@@ -33,13 +33,25 @@ export const asignarCupo = async (req, res) => {
 
     // Bloquear fila y validar cupos disponibles
     const [cita] = await connection.query(
-      'SELECT cupos_disponibles FROM citas WHERE cod = ? FOR UPDATE',
+      'SELECT cupos_disponibles, cod_usuario_prestador FROM citas WHERE cod = ? FOR UPDATE',
       [cod_cita]
     );
 
     if (cita.length === 0 || cita[0].cupos_disponibles <= 0) {
       await connection.rollback();
       return res.status(400).json({ error: 'No hay cupos disponibles.' });
+    }
+
+    // Validar que el solicitante esté suscrito al prestador dueño de la cita
+    const [suscripcion] = await connection.query(
+      `SELECT 1 FROM solicitantes_prestadores
+       WHERE cod_usuario_solicitante = ? AND cod_usuario_prestador = ?`,
+      [cod_usuario_solicitante, cita[0].cod_usuario_prestador]
+    );
+
+    if (suscripcion.length === 0) {
+      await connection.rollback();
+      return res.status(403).json({ error: 'Debes suscribirte al prestador antes de tomar un cupo en su cita.' });
     }
 
     // Insertar reserva en cupos
@@ -127,9 +139,34 @@ export const suscribirPrestador = async (req, res) => {
   if (!cod_usuario_solicitante) {
     return res.status(400).json({ error: 'No se pudo obtener la identidad del usuario desde el token.' });
   }
+  if (!cod_usuario_prestador) {
+    return res.status(400).json({ error: 'cod_usuario_prestador es obligatorio.' });
+  }
 
-  // Devolvemos respuesta exitosa directamente sin tocar tablas inexistentes
-  res.json({ message: 'Prestador suscrito correctamente' });
+  try {
+    // Verifica que el prestador exista realmente
+    const [prestador] = await pool.query(
+      'SELECT cod_usuario FROM prestadores WHERE cod_usuario = ?',
+      [cod_usuario_prestador]
+    );
+    if (prestador.length === 0) {
+      return res.status(404).json({ error: 'El prestador indicado no existe.' });
+    }
+
+    // Se asegura de que exista la fila en "solicitantes"
+    await pool.query(`INSERT IGNORE INTO solicitantes (cod_usuario) VALUES (?)`, [cod_usuario_solicitante]);
+
+    // INSERT IGNORE evita error si ya estaba suscrito (llave primaria compuesta)
+    await pool.query(
+      `INSERT IGNORE INTO solicitantes_prestadores (cod_usuario_solicitante, cod_usuario_prestador)
+       VALUES (?, ?)`,
+      [cod_usuario_solicitante, cod_usuario_prestador]
+    );
+
+    res.json({ message: 'Prestador suscrito correctamente' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 export const obtenerMisReservas = async (req, res) => {

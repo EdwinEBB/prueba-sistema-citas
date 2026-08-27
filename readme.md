@@ -49,7 +49,7 @@ Aplicación web full-stack para la administración, programación y reserva de c
    Abre otra terminal en la carpeta del cliente web, instala las dependencias y ejecuta el entorno de desarrollo:
 
 ```bash
-   npm install
+   npm install 
    npm run dev
 ```
 

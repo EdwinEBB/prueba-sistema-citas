@@ -8,9 +8,8 @@ export const getUserRole = () => {
   const token = localStorage.getItem('token');
   if (!token) return null;
   
-  // Decodificar payload del JWT (o leer del usuario guardado en localStorage)
   const payload = JSON.parse(atob(token.split('.')[1]));
-  return payload.rol; // O payload.rol_id / payload.tipo_usuario
+  return payload.rol;
 
 }
 
